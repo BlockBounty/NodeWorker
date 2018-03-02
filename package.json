@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/BlockBounty/NodeWorker/issues"
   },
-  "homepage": "https://github.com/BlockBounty/NodeWorker#readme"
+  "homepage": "https://github.com/BlockBounty/NodeWorker#readme",
+  "dependencies": {
+    "yargs": "^11.0.0"
+  }
 }

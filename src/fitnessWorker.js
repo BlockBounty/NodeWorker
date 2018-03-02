@@ -45,19 +45,23 @@ let getNextJob = (argv) => {
         json: true
     };
 
-    let fetchJob = (resolver) => {
+    let fetchJob = (resolver, rejecter, failureCount) => {
         // console.log(' GET:', rpConfig.uri);
         rp(rpConfig)
             .then(json => resolver(json))
             .catch(err => {
                 console.log(err);
                 console.log("Failed to get a job");
-                setTimeout(() => fetchJob(resolver), 1000);
+                if (failureCount <= 15) {
+                    setTimeout(() => fetchJob(resolver, rejecter, ++failureCount), 1000);
+                } else {
+                    rejecter(`Giving up on job ${argv.job} at server ${argv.server}`);
+                }
             });
     }
 
-    return new Promise((resolver) => {
-        fetchJob(resolver);
+    return new Promise((resolver, rejecter) => {
+        fetchJob(resolver, rejecter, 0);
     });
 };
 

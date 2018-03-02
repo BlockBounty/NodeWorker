@@ -19,6 +19,6 @@ if (argv._[0] == 'work') {
         json: true
     }).then(res => {
         console.log('Job id: ', res.jobId);
-    });
+    }).catch(err => console.log("Error making new job", err));
 }
 

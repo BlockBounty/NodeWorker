@@ -1,17 +1,24 @@
-let argv = require('yargs')
-    .usage('Usage: -a [ether address] -j [job] -s [api_server]')
-    .describe('a', 'Ethereum address to pay shares of the bounty to')
-    .describe('j', 'Job id to contribute to')
-    .describe('s', 'Optional parameter to specify the api server to use')
-    .alias('a', 'address')
-    .alias('j', 'job')
-    .alias('s', 'server')
-    .demandOption(['a', 'j'])
-    .help('h')
-    .alias('h', 'help')
-    .default({ 's': 'http://localhost:8089' })
-    .number('j')
-    .string(['a', 's'])
-    .argv;
+const exit = () => {
+    console.log('\n');
+    process.exit();
+};
 
-console.log(JSON.stringify(argv));
+process.on('exit', exit);
+process.on('SIGINT', exit);
+
+const { argv } = require('./args');
+const FitnessWorker = require('./fitnessWorker');
+const rp = require('request-promise-native');
+
+if (argv._[0] == 'work') {
+    FitnessWorker.start(argv);
+} else if (argv._[0] == 'new') {
+    rp({
+        method: 'POST',
+        uri: `${argv.server}/api/jobs`,
+        json: true
+    }).then(res => {
+        console.log('Job id: ', res.jobId);
+    });
+}
+

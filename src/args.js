@@ -26,8 +26,8 @@ module.exports = {
         })
         .example('$0 work -a 0x0 -j 1 [-s http://localhost:8089]')
 
-        // .demand(1, 'Please specify one of the commands!')
-        // .strict()
+        .demandCommand(1, 'Please specify one of the commands!')
+        .strict(true)
 
         .option('s', {
             alias: 'server',

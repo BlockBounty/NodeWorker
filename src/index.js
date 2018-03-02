@@ -1,6 +1,6 @@
-const exit = () => {
+const exit = (exitCode) => {
     console.log('\n');
-    process.exit();
+    process.exit(exitCode);
 };
 
 process.on('exit', exit);

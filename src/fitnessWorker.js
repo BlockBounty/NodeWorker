@@ -1,3 +1,5 @@
+const DEFAULT_BATCH_SIZE = 5;
+
 const rp = require('request-promise-native');
 const Spinner = require('clui').Spinner;
 
@@ -10,10 +12,10 @@ let start = (argv) => {
     if (evaluations == 0) {
         status.start();
     }
+
     status.message('Fitness Evaluations: ' + evaluations++);
     getNextJob(argv)
         .then(res => {
-            // console.log('GRES:', JSON.stringify(res));
             return res;
         })
         .then((res) => Promise.all([
@@ -36,9 +38,14 @@ let start = (argv) => {
         }).catch(err => console.log(err));
 }
 
+let batchedJobs = [];
 let getNextJob = (argv) => {
+    if (batchedJobs.length != 0) {
+        return Promise.resolve(batchedJobs.pop());
+    }
+
     const rpConfig = {
-        uri: `${argv.server}/api/controllers/${argv.job}`,
+        uri: `${argv.server}/api/controllers/${argv.job}?batchSize=${DEFAULT_BATCH_SIZE}`,
         headers: {
             'X-Ether-Address': argv.address
         },
@@ -46,9 +53,11 @@ let getNextJob = (argv) => {
     };
 
     let fetchJob = (resolver, rejecter, failureCount) => {
-        // console.log(' GET:', rpConfig.uri);
         rp(rpConfig)
-            .then(json => resolver(json))
+            .then(json => {
+                json.controllers.forEach(j => batchedJobs.push(j));
+                resolver(batchedJobs.pop());
+            })
             .catch(err => {
                 console.log(err);
                 console.log("Failed to get a job");
@@ -102,27 +111,33 @@ let pushController = (controller, wasmExports) => {
     wasmExports.pushByte('='.charCodeAt(0));
 };
 
+let batchedJobResults = [];
 let postJobResults = (address, results, apiUrl) => {
+    batchedJobResults.push({
+        fitness: results.fitness,
+        steps: results.steps,
+        seed: results.seed,
+        controllerId: results.controllerId,
+    });
+
+    if (batchedJobs.length > 0) {
+        return;
+    }
+
     const postConfig = {
         method: 'POST',
-        uri: `${apiUrl}/api/fitness/${results.controllerId}`,
+        uri: `${apiUrl}/api/fitness/${results.jobId}`,
         headers: {
             'X-Ether-Address': address,
             'Content-Type': 'application/json'
         },
-        body: {
-            fitness: results.fitness,
-            steps: results.steps,
-            seed: results.seed,
-            jobId: results.jobId,
-        },
+        body: batchedJobResults,
         json: true
     };
+    batchedJobResults = [];
 
-    // console.log('POST:', postConfig.uri, ":", results);
     return new Promise((res) => {
         rp(postConfig).then(() => {
-            // console.log('PRES');
             res();
         }).catch(e => console.log('Failed to post results', e));
     });

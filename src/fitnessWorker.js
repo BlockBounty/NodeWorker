@@ -1,29 +1,21 @@
 const DEFAULT_BATCH_SIZE = 5;
 
 const rp = require('request-promise-native');
-const Spinner = require('clui').Spinner;
 
 let wasmExports, currentJobId;
 
 let evaluations = 0;
-let status = new Spinner('Going to work', ['⣾', '⣽', '⣻', '⢿', '⡿', '⣟', '⣯', '⣷'].reverse());
 
-let start = (argv) => {
-    if (evaluations == 0) {
-        status.start();
-    }
-
-    status.message('Fitness Evaluations: ' + evaluations++);
-    getNextJob(argv)
-        .then(res => {
-            return res;
-        })
+let start = (totalEvals, batchSize, argv) => {
+	batchSize = batchSize || DEFAULT_BATCH_SIZE;
+    console.log('Fitness Evaluations: ' + evaluations++);
+    return getNextJob(batchSize, argv)
         .then((res) => Promise.all([
             getWasmExports(res.jobId, argv.server),
             Promise.resolve({ controller: res.controller, seed: res.seed, controllerId: res.id, jobId: res.jobId })
         ])).then(([wasmExports, jobInfo]) => {
             pushController(jobInfo.controller, wasmExports);
-            wasmExports.init(jobInfo.seed);
+            wasmExports.init(420);
             return Promise.resolve({
                 fitness: wasmExports.getFitness(),
                 steps: wasmExports.getSteps(),
@@ -34,18 +26,24 @@ let start = (argv) => {
         }).then(results => {
             return postJobResults(argv.address, results, argv.server);
         }).then(() => {
-            start(argv);
+        	if (evaluations >= totalEvals) {
+        		evaluations = 0;
+        		return Promise.resolve();
+
+        	} else {
+        		return start(totalEvals, argv);
+        	}
         }).catch(err => console.log(err));
 }
 
 let batchedJobs = [];
-let getNextJob = (argv) => {
+let getNextJob = (batchSize, argv) => {
     if (batchedJobs.length != 0) {
         return Promise.resolve(batchedJobs.pop());
     }
 
     const rpConfig = {
-        uri: `${argv.server}/api/controllers/${argv.job}?batchSize=${DEFAULT_BATCH_SIZE}`,
+        uri: `${argv.server}/api/controllers/${argv.job}?batchSize=${batchSize}`,
         headers: {
             'X-Ether-Address': argv.address
         },
@@ -60,6 +58,7 @@ let getNextJob = (argv) => {
             })
             .catch(err => {
                 console.log(err);
+
                 console.log("Failed to get a job");
                 if (failureCount <= 15) {
                     setTimeout(() => fetchJob(resolver, rejecter, ++failureCount), 1000);

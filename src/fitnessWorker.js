@@ -7,7 +7,7 @@ let wasmExports, currentJobId;
 let evaluations = 0;
 
 let start = (totalEvals, batchSize, argv) => {
-	batchSize = batchSize || DEFAULT_BATCH_SIZE;
+    batchSize = batchSize || DEFAULT_BATCH_SIZE;
     console.log('Fitness Evaluations: ' + evaluations++);
     return getNextJob(batchSize, argv)
         .then((res) => Promise.all([
@@ -26,13 +26,13 @@ let start = (totalEvals, batchSize, argv) => {
         }).then(results => {
             return postJobResults(argv.address, results, argv.server);
         }).then(() => {
-        	if (evaluations >= totalEvals) {
-        		evaluations = 0;
-        		return Promise.resolve();
+            if (evaluations >= totalEvals) {
+                evaluations = 0;
+                return Promise.resolve();
 
-        	} else {
-        		return start(totalEvals, argv);
-        	}
+            } else {
+                return start(totalEvals, batchSize, argv);
+            }
         }).catch(err => console.log(err));
 }
 

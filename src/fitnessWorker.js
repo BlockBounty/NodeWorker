@@ -23,7 +23,7 @@ let start = (argv) => {
             Promise.resolve({ controller: res.controller, seed: res.seed, controllerId: res.id, jobId: res.jobId })
         ])).then(([wasmExports, jobInfo]) => {
             pushController(jobInfo.controller, wasmExports);
-            wasmExports.init(420);
+            wasmExports.init(jobInfo.seed);
             return Promise.resolve({
                 fitness: wasmExports.getFitness(),
                 steps: wasmExports.getSteps(),

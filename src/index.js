@@ -20,10 +20,10 @@ let started = false;
 app.get('/', function (req, res) {
     if (!started && req.query.evals) {
         started = true;
-        res.send('Starting ' + req.query.evals + ' Evals');
         FitnessWorker.start(parseInt(req.query.evals, 10), parseInt(req.query.batchSize, 10), argv).then(blah => {
             console.log('Finished evals');
             started = false;
+            res.send('Finished ' + req.query.evals + ' Evals');
         });
     } else if (started && req.query.evals) {
         res.send('Worker is in progress');

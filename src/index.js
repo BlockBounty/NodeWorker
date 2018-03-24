@@ -33,6 +33,6 @@ app.get('/', function (req, res) {
 });
 
 app.listen(process.env.PORT || 8081);
-console.log(`Listening on: ${process.env.PORT || 8081}`);
+console.log(`Listening on: ${process.env.PORT || 8081} with args ${JSON.stringify({ server: argv.server, address: argv.address })}`);
 
 

@@ -3,7 +3,16 @@ module.exports = {
         .usage('Usage: $0 <command> [options]')
 
         // 'new' Command
-        .command('new', 'start a new job, returns the job id')
+        .command('new', 'start a new job, returns the job id', (Argv) => {
+            return Argv
+                .option('f', {
+                    alias: 'file',
+                    type: 'string',
+                    demand: 'Please specify a wasm file for the new job',
+                    nargs: 1,
+                    describe: "The wasm file that will be ran on clients",
+                })
+        })
         .example('$0 new [-s http://localhost:8089]')
 
         // 'work' Command

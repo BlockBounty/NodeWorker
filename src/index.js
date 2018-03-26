@@ -9,6 +9,8 @@ process.on('SIGINT', exit);
 const { argv } = require('./args');
 const FitnessWorker = require('./fitnessWorker');
 const rp = require('request-promise-native');
+const fs = require('fs');
+process.title = "bbworker";
 
 if (argv._[0] == 'work') {
     FitnessWorker.start(argv);
@@ -16,7 +18,16 @@ if (argv._[0] == 'work') {
     rp({
         method: 'POST',
         uri: `${argv.server}/api/jobs`,
-        json: true
+        json: true,
+        formData: {
+            name: "wasm",
+            file : {
+                value: fs.createReadStream(argv.file),
+                options: {
+                    contentType: "multipart/form-data",
+                }
+            }
+        }
     }).then(res => {
         console.log('Job id: ', res.jobId);
     }).catch(err => console.log("Error making new job", err));

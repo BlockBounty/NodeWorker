@@ -20,7 +20,7 @@ if (argv._[0] == 'work') {
         uri: `${argv.server}/api/jobs`,
         json: true,
         formData: {
-            name: "wasm",
+            config: fs.readFileSync(argv.config, "utf-8"),
             file : {
                 value: fs.createReadStream(argv.file),
                 options: {

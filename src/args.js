@@ -12,6 +12,13 @@ module.exports = {
                     nargs: 1,
                     describe: "The wasm file that will be ran on clients",
                 })
+                .option('c', {
+                    alias: 'config',
+                    type: 'string',
+                    demand: 'Please specify a config file for the new job',
+                    nargs: 1,
+                    describe: "The config file that will create the job",
+                })
         })
         .example('$0 new [-s http://localhost:8089]')
 

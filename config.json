@@ -1,0 +1,6 @@
+{
+    "populationSize": 100,
+    "mutationPercent": 0.5,
+    "selectionStrategy": "tournament",
+    "tournamentSize": 5
+}
